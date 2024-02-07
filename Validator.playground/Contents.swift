@@ -12,10 +12,10 @@ protocol RuleValidationProtocol {
 protocol AnyRuleValidation {
     var priority: Int { get }
     var errorMessage: String { get }
-    func validate(value: Any) -> Rule
+    func validate(value: Any) -> RuleCompletion
 }
 
-enum Rule {
+enum RuleCompletion {
     case success
     case failure(String?)
 }
@@ -50,7 +50,7 @@ struct RegexValidation: RuleValidationProtocol {
 
 //MARK: - Validator
 struct AnyRuleValidator<Validator: RuleValidationProtocol>: AnyRuleValidation {
-    private let _validate: (Validator.Value) -> Rule
+    private let _validate: (Validator.Value) -> RuleCompletion
     let priority: Int
     let errorMessage: String
     
@@ -62,7 +62,7 @@ struct AnyRuleValidator<Validator: RuleValidationProtocol>: AnyRuleValidation {
         }
     }
     
-    func validate(value: Any) -> Rule {
+    func validate(value: Any) -> RuleCompletion {
         guard let value = value as? Validator.Value else {
             return .failure(errorMessage)
         }
@@ -71,7 +71,7 @@ struct AnyRuleValidator<Validator: RuleValidationProtocol>: AnyRuleValidation {
 }
 
 
-func validateField(value: Any, rules: [AnyRuleValidation], completion: @escaping (Rule) -> Void) {
+func validateField(value: Any, rules: [AnyRuleValidation], completion: @escaping (RuleCompletion) -> Void) {
     DispatchQueue.main.async {
         let sortedRules = rules.sorted { $0.priority < $1.priority }
         
